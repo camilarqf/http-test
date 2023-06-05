@@ -1,0 +1,40 @@
+app:
+  name: 'HTTP'
+
+main_branch: 'master'
+
+image_definition:
+  name: 'http-img'
+  registry_host: '192.168.1.6:5000'
+  docker_file: 'Dockerfile'
+
+container_definition:
+  name: 'http'
+  memory: '2G'
+  internal_port: 8081
+  external_port: 8080
+  log_max_file: 5
+  log_max_size: '5m'
+  replicas: 2
+  #volume: '/mnt/gerenciador_share:/mnt/gerenciador-container-share'
+
+integration_definition:
+  discord_web_hook_notification: 'https://discordapp.com/api/webhooks/1113501876290322502/nKY752bMbJnBZe34y1ZS8yUE9XfqRSD0XNShXD_ldSr4SY1Z9Xx4KHoMm6N3aMt20HiY'
+  #discord_web_hook_alert: 'https://discord.com/api/webhooks/923371466328780820/wRwuro1nMqATZRx3VohbhcOmQ66TBC1zgAWeN7BB6X_Zd1j3o6eOhx9E6eP-AqsXmVKX'
+  healt_check_endpoint: 'healthcheck'
+
+regions:
+  - name: 'Homolog'
+    host: '192.168.1.6'
+    credential_id: 'root'
+    env_file: '.jenkins-pipelines/homolog.env.yml'
+
+  - name: 'Green'
+    host: '192.168.1.2'
+    credential_id: 'root'
+    env_file: '.jenkins-pipelines/prod.env.yml'
+
+  - name: 'Blue'
+    host: '192.168.1.3'
+    credential_id: 'root'
+    env_file: '.jenkins-pipelines/prod.env.yml'
