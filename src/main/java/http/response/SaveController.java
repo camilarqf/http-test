@@ -1,5 +1,6 @@
 package http.response;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
@@ -21,6 +22,7 @@ import java.nio.file.StandardCopyOption;
 
 @RestController
 @RequestMapping("/file")
+@Slf4j
 public class SaveController {
 
     @Value("${file.upload-dir}")
@@ -41,7 +43,7 @@ public class SaveController {
         // Salvar o arquivo no diretório de destino
         String fileAbsolutePath = uploadDir + File.separator + file.getOriginalFilename();
         Files.copy(file.getInputStream(), new File(fileAbsolutePath).toPath(), StandardCopyOption.REPLACE_EXISTING);
-
+        log.info("OK!");
         return ResponseEntity.ok("Arquivo salvo com sucesso");
 
 
