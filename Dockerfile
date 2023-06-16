@@ -22,15 +22,3 @@ CMD java -Dnewrelic.environment=$ENV -jar http.response-0.0.1-SNAPSHOT.jar
 ENV NEW_RELIC_LOG_FILE_NAME="STDOUT"
 
 ENTRYPOINT ["java","-javaagent:/usr/local/tomcat/newrelic/newrelic.jar","-jar","http.response-0.0.1-SNAPSHOT.jar"]
-
-#Configurando New Relic
-RUN mkdir -p /usr/local/tomcat/newrelic
-ADD src/main/resources/newrelic/newrelic.jar /usr/local/tomcat/newrelic/newrelic.jar
-ENV JAVA_OPTS="$JAVA_OPTS -javaagent:/usr/local/tomcat/newrelic/newrelic.jar"
-ADD src/main/resources/newrelic/newrelic.yml /usr/local/tomcat/newrelic/newrelic.yml
-ENV NEW_RELIC_APP_NAME=NEW_RELIC_APP_NAME
-ENV JAVA_OPTS="$JAVA_OPTS -Dnewrelic.config.app_name=$NEW_RELIC_APP_NAME"
-ENV NEW_RELIC_LICENSE_KEY=NEW_RELIC_LICENSE_KEY
-ENV JAVA_OPTS="$JAVA_OPTS -Dnewrelic.config.license_key=$NEW_RELIC_LICENSE_KEY"
-CMD java -Dnewrelic.environment=$ENV -jar /transparencia.jar
-ENV NEW_RELIC_LOG_FILE_NAME="STDOUT"
