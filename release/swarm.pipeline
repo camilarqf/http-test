@@ -1,0 +1,292 @@
+pipeline{
+    agent any
+
+    environment{
+        buildId="${UUID.randomUUID().toString()}"
+        app=null
+        fullImageName='';
+        imageDefinition=''
+        containerDefinition=''
+        integrationDefinition=null
+        regionHomolog=null
+        regionGreen=null
+        regionBlue=null
+    }
+
+    stages{
+
+        stage("Start"){
+            steps{
+                timeout(time: 15, unit: 'SECONDS') {
+                    script{
+                       input message: "Start pipeline?', ok: 'Confirm!"
+                    }
+
+                }
+            }
+
+        }
+
+        stage("Load parameters"){
+
+            steps{
+                script{
+
+                    params=loadParameters();
+                    app=params.app;
+                    mainBranch=params.main_branch;
+                    imageDefinition=params.image_definition;
+                    containerDefinition=params.container_definition;
+                    integrationDefinition=params.integration_definition;
+                    regionHomolog=params.regions[0]
+                    regionProd=params.regions[1];
+                }
+                wrap([$class: 'BuildUser']) {
+                    script {
+                        USER_ID = "${BUILD_USER}"
+                        }
+                }
+            }
+        }
+
+        stage("Build Image"){
+
+            steps{
+                script{
+
+                    fullImageName="${imageDefinition.name}:${buildId}";
+
+                     docker.withRegistry("http://${imageDefinition.registry_host}") {
+                         def customImage = docker.build("${fullImageName}", "-f ${imageDefinition.docker_file} .")
+                         customImage.push()
+                     }
+                }
+            }
+        }
+
+        stage("Deploy Homolog"){
+
+            environment{
+                credentials=credentials("${regionHomolog.credential_id}");
+            }
+
+            steps{
+                 timeout(time: 5, unit: 'MINUTES') {
+                    script{
+
+                        input message: "Start deploy ${regionHomolog.name}', ok: 'Confirm!"
+
+                        createDeployNotification(regionHomolog.name,regionHomolog.host,"iniciado");
+
+                        def remote=buildRemote(regionHomolog.host,regionHomolog.name,"$credentials_USR","$credentials_PSW")
+
+                        def env=extractEnvironmentVariables(regionHomolog.env_file);
+
+                        deploy(remote,containerDefinition.external_port,env);
+
+                        createDeployNotification(regionHomolog.name,regionHomolog.host,"finalizado");
+
+                    }
+                 }
+            }
+        }
+
+        stage("Temporary Production Deployment"){
+                    when{
+                        branch mainBranch
+                    }
+                    environment{
+                        credentials=credentials("${regionProd.credential_id}")
+                    }
+                    steps{
+                        script{
+                            def externalPortTemp = containerDefinition.external_port + 100
+
+                            def remote = buildRemote(regionProd.manager_hosts, regionProd.name, "$credentials_USR", "$credentials_PSW")
+                            def env = extractEnvironmentVariables(regionProd.env_file)
+                            deployWithSwarm(remote, externalPortTemp, env)
+
+                            def healthCheckUri = "http://${regionProd.manager_hosts}:${externalPortTemp}/${integrationDefinition.healt_check_endpoint}"
+                            createHealthCheckNotification(regionProd.name, healthCheckUri)
+                        }
+                    }
+                }
+
+                stage("Validate Temporary Service"){
+                    when{
+                        branch mainBranch
+                    }
+                    steps{
+                        script{
+                            input message: "${regionProd.name} is Healthy?", ok: "Yes!"
+                        }
+                    }
+                }
+
+                stage("Production Rollout"){
+                    when{
+                        branch mainBranch
+                    }
+                    environment{
+                        credentials=credentials("${regionProd.credential_id}")
+                    }
+                    steps{
+                        script{
+                            def remote = buildRemote(regionProd.manager_hosts, regionGreen.name, "$credentials_USR", "$credentials_PSW")
+                            def env = extractEnvironmentVariables(regionProd.env_file)
+
+                            deployWithSwarm(remote, containerDefinition.external_port, env) // Note: This will now overwrite the main service
+
+                            createDeployNotification(regionProd.name, regionProd.manager_hosts, "completed")
+                        }
+                    }
+                }
+
+                stage("Cleanup"){
+                    when{
+                        branch mainBranch
+                    }
+                    environment{
+                        credentials=credentials("${regionProd.credential_id}")
+                    }
+                    steps{
+                        script{
+                            def remote = buildRemote(regionProd.manager_hosts, regionGreen.name, "$credentials_USR", "$credentials_PSW")
+                            removeTemporaryService(remote)
+                        }
+                    }
+                }
+            }
+
+            post{
+                failure{
+                    createFailureNotification()
+                }
+
+                aborted {
+                    createAbortNotification()
+                }
+            }
+        }
+
+// Função adaptada para deploy com Docker Swarm
+def deployWithSwarm(remote, externalPort, env) {
+    def serviceExists = sshCommand(remote: remote, command: "docker service ls --filter 'name=${containerDefinition.name}' -q")
+
+    if (serviceExists) {
+        sshCommand(remote: remote, command: "docker service rm ${containerDefinition.name}")
+    }
+
+    def volumeFlag = ""
+
+    if (containerDefinition.volume) {
+         volumeFlag = "--mount type=volume,src=${containerDefinition.volume},dst=${containerDefinition.volume}"
+    }
+
+    sshCommand(remote: remote, command:
+        "docker service create --name ${containerDefinition.name} --publish published=${externalPort},target=${containerDefinition.internal_port} --replicas 1 --constraint 'node.role==worker' ${volumeFlag} ${env} ${imageDefinition.registry_host}/${fullImageName}")
+}
+
+def removeTemporaryService(remote) {
+    def temporaryServiceName = "${containerDefinition.name}-test"
+
+    // Verificar se o serviço temporário existe
+    def serviceExists = sshCommand(remote: remote, command: "docker service ls --filter 'name=${temporaryServiceName}' -q")
+
+    // Se existir, remova-o
+    if (serviceExists) {
+        sshCommand(remote: remote, command: "docker service rm ${temporaryServiceName}")
+    }
+}
+
+
+def extractEnvironmentVariables(envFile){
+
+     if(!envFile) {
+         return "";
+     }
+
+      def content = readYaml (file: envFile);
+
+      def concatEnv="";
+
+      for(item in content.environment_variables){
+           concatEnv+="-e ${item.name}='${item.value}' ";
+      }
+
+      return concatEnv;
+}
+
+def buildRemote(host,regionName,user,password){
+
+    def dockerRemote=[:]
+    dockerRemote.name = 'remote'
+    dockerRemote.host = host
+    dockerRemote.hostname="${containerDefinition.name}-region-${regionName.toLowerCase()}"
+    dockerRemote.user= user
+    dockerRemote.password= password
+    dockerRemote.allowAnyHosts = true
+
+    return dockerRemote;
+}
+
+def loadParameters(){
+  def params = readYaml (file: '.jenkins-pipelines/deployment.params.yml')
+  return params;
+}
+
+def createDeployNotification(regionName,host,status){
+
+    def notification="""
+ ```
+user: ${USER_ID}
+build id: ${buildId}
+build number: ${env.BUILD_NUMBER}
+branch: ${env.GIT_BRANCH}
+host: ${host}
+image name: ${fullImageName}
+container definition
+    name: ${containerDefinition.name}
+    memory: ${containerDefinition.memory}
+    external_port: ${containerDefinition.external_port}
+    log_max_file: ${containerDefinition.log_max_file}
+    log_max_size: ${containerDefinition.log_max_size}
+    volume: ${containerDefinition.volume}
+```
+"""
+    notifyOnDiscord("Deploy Region ${regionName} - ${status}",notification,integrationDefinition.discord_web_hook_notification)
+}
+
+def createHealthCheckNotification(regionName,healthCheckUri){
+
+    def notification="""
+### O deploy na region ${regionName} foi executado.
+
+> Para validar, execute um health check usando [este link](${healthCheckUri})
+
+ApÃ³s validar o teste, acesse a [pipeline](${env.BUILD_URL}) e confirme o *rollout*.
+    """
+
+    notifyOnDiscord("Deploy Region ${regionName}",notification,integrationDefinition.discord_web_hook_notification)
+}
+
+def createFailureNotification(){
+
+    def notification="### A execuÃ§Ã£o da pipeline ${env.BUILD_URL} falhou."
+
+    notifyOnDiscord("Falhou",notification,integrationDefinition.discord_web_hook_notification)
+}
+
+def createAbortNotification(){
+
+    def notification="### A execuÃ§Ã£o da pipeline ${env.BUILD_URL} foi cancelada."
+
+    notifyOnDiscord("Cancelou",notification,integrationDefinition.discord_web_hook_notification)
+}
+
+def notifyOnDiscord(title,description,webhookUrl) {
+
+    def curlScript="curl -X POST ${webhookUrl} -s -H 'Content-Type: application/x-www-form-urlencoded' -d 'username=${app.name} - ${title}&content=${description}' "
+
+    sh(script:curlScript, returnStdout: false)
+}

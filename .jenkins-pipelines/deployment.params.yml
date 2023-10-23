@@ -29,12 +29,7 @@ regions:
     credential_id: 'root'
     env_file: '.jenkins-pipelines/homolog.env.yml'
 
-  - name: 'Green'
-    host: '192.168.1.2'
-    credential_id: 'root'
-    env_file: '.jenkins-pipelines/prod.env.yml'
-
-  - name: 'Blue'
-    host: '192.168.1.3'
+  - name: 'Producao'
+    manager_hosts: ['192.168.1.10', '192.168.1.2', '192.168.1.3']
     credential_id: 'root'
     env_file: '.jenkins-pipelines/prod.env.yml'
