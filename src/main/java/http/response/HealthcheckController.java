@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 @RestController
 @RequestMapping("/healthcheck")
 public class HealthcheckController {
-    @RequestMapping(method = RequestMethod.GET, value = "200")
+    @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<String> health(){
         return  new ResponseEntity<>("Healthy", HttpStatus.OK);
     }
