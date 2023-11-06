@@ -57,7 +57,7 @@ public class SaveController {
             System.out.println(resource);
 
             // Obter o caminho absoluto do arquivo
-            String filePath = uploadDir + "\\" + filename;
+            String filePath = uploadDir + "/" + filename;
             System.out.println(filePath);
 
             // Criar o recurso do arquivo
