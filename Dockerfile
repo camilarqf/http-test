@@ -10,16 +10,20 @@ FROM openjdk:8-jdk-alpine
 COPY --from=MAVEN_DIR tmp/target/http.response-0.0.1-SNAPSHOT.jar http.response-0.0.1-SNAPSHOT.jar
 
 #Configurando New Relic
-#RUN mkdir -p /usr/local/tomcat/newrelic
-#ADD src/main/resources/newrelic.jar /usr/local/tomcat/newrelic/newrelic.jar
-#ENV JAVA_OPTS="$JAVA_OPTS -javaagent:/usr/local/tomcat/newrelic/newrelic.jar"
-#ADD src/main/resources/newrelic.yml /usr/local/tomcat/newrelic/newrelic.yml
-#ENV NEW_RELIC_APP_NAME=NEW_RELIC_APP_NAME
-#ENV JAVA_OPTS="$JAVA_OPTS -Dnewrelic.config.app_name=$NEW_RELIC_APP_NAME"
-#ENV NEW_RELIC_LICENSE_KEY=NEW_RELIC_LICENSE_KEY
-#ENV JAVA_OPTS="$JAVA_OPTS -Dnewrelic.config.license_key=$NEW_RELIC_LICENSE_KEY"
-#CMD java -Dnewrelic.environment=$ENV -jar http.response-0.0.1-SNAPSHOT.jar
-#ENV NEW_RELIC_LOG_FILE_NAME="STDOUT"
+RUN mkdir -p /usr/local/tomcat/newrelic
+ADD src/main/resources/newrelic.jar /usr/local/tomcat/newrelic/newrelic.jar
+ENV JAVA_OPTS="$JAVA_OPTS -javaagent:/usr/local/tomcat/newrelic/newrelic.jar"
+ADD src/main/resources/newrelic.yml /usr/local/tomcat/newrelic/newrelic.yml
+ENV NEW_RELIC_APP_NAME=NEW_RELIC_APP_NAME
+ENV JAVA_OPTS="$JAVA_OPTS -Dnewrelic.config.app_name=$NEW_RELIC_APP_NAME"
+ENV NEW_RELIC_LICENSE_KEY=NEW_RELIC_LICENSE_KEY
+ENV JAVA_OPTS="$JAVA_OPTS -Dnewrelic.config.license_key=$NEW_RELIC_LICENSE_KEY"
+CMD java -Dnewrelic.environment=$ENV -jar http.response-0.0.1-SNAPSHOT.jar
+ENV NEW_RELIC_LOG_FILE_NAME="STDOUT"
 
-#ENTRYPOINT ["java","-javaagent:/usr/local/tomcat/newrelic/newrelic.jar","-jar","http.response-0.0.1-SNAPSHOT.jar"]
-ENTRYPOINT ["java", "-jar","http.response-0.0.1-SNAPSHOT.jar"]
+# Adicionando Healthcheck
+HEALTHCHECK --interval=30s --timeout=30s --retries=3 \
+  CMD curl -f http://localhost:8080/healthcheck || exit 1
+
+ENTRYPOINT ["java","-javaagent:/usr/local/tomcat/newrelic/newrelic.jar","-jar","http.response-0.0.1-SNAPSHOT.jar"]
+#ENTRYPOINT ["java", "-jar","http.response-0.0.1-SNAPSHOT.jar"]
