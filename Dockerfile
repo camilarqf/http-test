@@ -26,5 +26,5 @@ HEALTHCHECK --interval=30s --timeout=30s --retries=3 \
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
-ENTRYPOINT ["/start.sh"]
+ENTRYPOINT /start.sh
 #ENTRYPOINT ["java", "-jar","http.response-0.0.1-SNAPSHOT.jar"]
