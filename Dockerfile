@@ -9,6 +9,12 @@ RUN mvn -Dmaven.test.skip=true -P $SPRING_PROFILES_ACTIVE package
 FROM openjdk:8-jdk-alpine
 COPY --from=MAVEN_DIR tmp/target/http.response-0.0.1-SNAPSHOT.jar http.response-0.0.1-SNAPSHOT.jar
 
+#Configurando New Relic
+COPY target/dependency/newrelic-agent.jar /app/newrelic/newrelic-agent.jar
+COPY src/main/resources/newrelic.yml /app/newrelic/newrelic.yml
+
+
+
 # Adicionando Healthcheck
 RUN apk --no-cache add curl
 HEALTHCHECK --interval=20s --timeout=30s --retries=3 \
