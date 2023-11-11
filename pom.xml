@@ -42,6 +42,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.newrelic.agent.java</groupId>
+			<artifactId>newrelic-agent</artifactId>
+			<version>8.7.0</version>
+		</dependency>
+
 	</dependencies>
 	<profiles>
 
