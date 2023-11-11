@@ -18,6 +18,7 @@ COPY --from=MAVEN_DIR tmp/target/http.response-0.0.1-SNAPSHOT.jar http.response-
 #ENV NEW_RELIC_LOG_FILE_NAME="STDOUT"
 
 # Adicionando Healthcheck
+RUN apk add --no-cache curl
 HEALTHCHECK --interval=40s --timeout=10s --retries=3  \
   CMD curl -f http://localhost:8081/healthcheck || exit 1
 
