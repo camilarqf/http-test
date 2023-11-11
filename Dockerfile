@@ -18,7 +18,7 @@ COPY --from=MAVEN_DIR tmp/target/http.response-0.0.1-SNAPSHOT.jar http.response-
 #ENV NEW_RELIC_LOG_FILE_NAME="STDOUT"
 
 # Adicionando Healthcheck
-HEALTHCHECK --interval=30s --timeout=30s --retries=3 --start-period=2m \
+HEALTHCHECK --interval=40s --timeout=10s --retries=3 --start-period=1m \
   CMD curl -f http://localhost:8081/healthcheck || exit 1
 
 #ENTRYPOINT ["java","-javaagent:/usr/local/tomcat/newrelic/newrelic.jar","-jar","http.response-0.0.1-SNAPSHOT.jar"]
