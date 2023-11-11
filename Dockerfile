@@ -22,6 +22,7 @@ CMD java -Dnewrelic.environment=$ENV -jar http.response-0.0.1-SNAPSHOT.jar
 ENV NEW_RELIC_LOG_FILE_NAME="STDOUT"
 
 # Adicionando Healthcheck
+RUN apk --no-cache add curl
 HEALTHCHECK --interval=30s --timeout=30s --retries=3 \
   CMD curl -f http://localhost:8080/healthcheck || exit 1
 
