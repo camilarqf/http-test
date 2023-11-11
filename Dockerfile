@@ -18,7 +18,7 @@ CMD java -Dnewrelic.environment=$ENV -jar http.response-0.0.1-SNAPSHOT.jar
 ENV NEW_RELIC_LOG_FILE_NAME="STDOUT"
 
 # Adicionando Healthcheck
-HEALTHCHECK --interval=20s --timeout=30s --retries=3 \
+HEALTHCHECK --interval=20s --timeout=10s --retries=3 --start-period=3m \
   CMD curl -f http://localhost:8081/healthcheck || exit 1
 
 ENTRYPOINT ["java","-javaagent:/usr/local/tomcat/newrelic/newrelic.jar","-jar","http.response-0.0.1-SNAPSHOT.jar"]
