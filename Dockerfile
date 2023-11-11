@@ -23,7 +23,7 @@ HEALTHCHECK --interval=30s --timeout=30s --retries=3 \
   CMD curl -f http://localhost:8081/healthcheck || exit 1
 
 # Copiar o script de inicialização para a imagem e dar permissão de execução
-COPY src/main/resources/start.sh /start.sh
+COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
 ENTRYPOINT ["/start.sh"]
