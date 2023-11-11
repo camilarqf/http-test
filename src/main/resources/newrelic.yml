@@ -248,7 +248,7 @@ common: &default_settings
 
     # Set to false to disable distributed tracing.
     # Default is true.
-    enabled: true
+    enabled: false
 
     # Agent versions 5.10.0+ utilize both the newrelic header and W3C Trace Context headers for distributed tracing.
     # The newrelic distributed tracing header allows interoperability with older agents that don't support W3C Trace Context headers.
@@ -265,7 +265,7 @@ common: &default_settings
 
     # Set to false to disable Span events.
     # Default is true.
-    enabled: true
+    enabled: false
 
     # Determines the number of Span events that can be captured during an agent harvest cycle.
     # Increasing the number of Span events can lead to additional agent overhead. A maximum value may be imposed server side by New Relic.
@@ -297,7 +297,7 @@ common: &default_settings
 
     # Set to false to disable cross-application tracing.
     # Default is true.
-    enabled: true
+    enabled: false
 
 
   # Thread profiler measures wall clock time, CPU time, and method call counts
@@ -307,7 +307,7 @@ common: &default_settings
 
     # Set to false to disable the thread profiler.
     # Default is true.
-    enabled: true
+    enabled: false
 
   # New Relic Real User Monitoring (RUM) gives you insight into the performance real users are
   # experiencing with your website. This is accomplished by measuring the time it takes for
@@ -320,7 +320,7 @@ common: &default_settings
     # See https://docs.newrelic.com/docs/agents/java-agent/instrumentation/new-relic-browser-java-agent#manual_instrumentation
     # for instructions to add these manually to your pages.
     # Set this attribute to false to turn off this behavior.
-    auto_instrument: true
+    auto_instrument: false
 
   # Class transformer can be used to disable all agent instrumentation or specific instrumentation modules.
   # All instrumentation modules can be found here: https://github.com/newrelic/newrelic-java-agent/tree/main/instrumentation
