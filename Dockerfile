@@ -18,14 +18,14 @@ FROM openjdk:8-jdk-alpine
 COPY --from=MAVEN_DIR tmp/target/http.response-0.0.1-SNAPSHOT.jar http.response-0.0.1-SNAPSHOT.jar
 
 #Configurando New Relic
-COPY target/dependency/newrelic-agent.jar /app/newrelic/newrelic-agent.jar
-COPY src/main/resources/newrelic.yml /app/newrelic/newrelic.yml
+COPY --from=MAVEN_DIR /tmp/target/dependency/newrelic-agent.jar /app/newrelic/newrelic-agent.jar
+COPY --from=MAVEN_DIR /tmp/target/dependency/newrelic.yml /app/newrelic/newrelic.yml
 
 # Adicionando Healthcheck
 RUN apk --no-cache add curl
 HEALTHCHECK --interval=20s --timeout=30s --retries=3 \
   CMD curl -f http://localhost:8081/healthcheck || exit 1
 
-ENTRYPOINT ["java","-javaagent:/usr/local/tomcat/newrelic/newrelic.jar","-jar","http.response-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java","-javaagent:/app/newrelic/newrelic-agent.jar","-jar","http.response-0.0.1-SNAPSHOT.jar"]
 #ENTRYPOINT ["java", "-jar","http.response-0.0.1-SNAPSHOT.jar"]
 
