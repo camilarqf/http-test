@@ -8,6 +8,18 @@
 # Do not add anything above this next line.
 common: &default_settings
 
+  # ============================== APP NAME ===============================
+  # Set the name of your application as you'd like it to show up in the New Relic UI.
+  # If enable_auto_app_naming is false, the agent reports all data to this application.
+  # Otherwise, the agent reports only background tasks (transactions for non-web applications)
+  # to this application. To report data to more than one application
+  # (useful for rollup reporting), separate the application names with ";".
+  # For example, to report data to "My Application" and "My Application 2" use this:
+  # app_name: My Application;My Application 2
+  # This setting is required. Up to 3 different application names can be specified.
+  # The first application name must be unique.
+  app_name: 'http-response-prod'
+
   # ============================== LICENSE KEY ===============================
   # You must specify the license key associated with your New Relic
   # account. For example, if your license key is 12345 use this:
@@ -20,16 +32,11 @@ common: &default_settings
   # Default is true.
   agent_enabled: true
 
-  # Set the name of your application as you'd like it to show up in the New Relic UI.
-  # If enable_auto_app_naming is false, the agent reports all data to this application.
-  # Otherwise, the agent reports only background tasks (transactions for non-web applications)
-  # to this application. To report data to more than one application
-  # (useful for rollup reporting), separate the application names with ";".
-  # For example, to report data to "My Application" and "My Application 2" use this:
-  # app_name: My Application;My Application 2
-  # This setting is required. Up to 3 different application names can be specified.
-  # The first application name must be unique.
-  app_name: 'http-backend-prod'
+  jar_collector:
+    enabled: false
+
+  jmx:
+    enabled: false
 
   # To enable high security, set this property to true. When in high
   # security mode, the agent will use SSL and obfuscated SQL. Additionally,
@@ -55,7 +62,7 @@ common: &default_settings
   # The levels in increasing order of verboseness are:
   #   off, severe, warning, info, fine, finer, finest
   # Default is info.
-  log_level: info
+  log_level: finest
 
   # Log all data sent to and from New Relic in plain text.
   # This setting is dynamic, so changes do not require restarting your application.
@@ -69,7 +76,7 @@ common: &default_settings
   # The maximum number of kbytes to write to any one log file.
   # The log_file_count must be set greater than 1.
   # Default is 0 (no limit).
-  log_limit_in_kbytes: 0
+  log_limit_in_kbytes: 5000
 
   # Override other log rolling configuration and roll the logs daily.
   # Default is false.
@@ -81,7 +88,7 @@ common: &default_settings
 
   # The log file directory.
   # Default is the logs directory in the newrelic.jar parent directory.
-  #log_file_path:
+  log_file_path: '/usr/local/tomcat/newrelic'
 
   # Provides the ability to forward application logs to New Relic, generate log usage metrics,
   # and decorate local application log files with agent metadata for use with third party log forwarders.
@@ -105,18 +112,6 @@ common: &default_settings
       # Default is 10000. Setting to 0 will disable.
       #max_samples_stored: 10000
 
-      # Whether the log events should include context from loggers with support for that.
-      context_data:
-
-        # When true, application logs will contain context data.
-        enabled: false
-
-        # A comma separated list of attribute keys whose values should be sent to New Relic.
-        #include:
-
-        # A comma separated list of attribute keys whose values should not be sent to New Relic.
-        #exclude:
-
     # The agent will generate metrics to indicate the number of
     # application log events occurring at each distinct log level.
     metrics:
@@ -131,14 +126,6 @@ common: &default_settings
 
       # When true, the agent will decorate your application log files with linking metadata. The default is false.
       #enabled: false
-
-  # Adds integration with CodeStream, introducing Code-Level Metrics! Golden Signals visible in your
-  # IDE through New Relic CodeStream.
-  code_level_metrics:
-
-    # When true the agent will capture namespace and function information
-    # on spans to enable code level metrics in CodeStream.
-    enabled: false
 
   # Proxy settings for connecting to the New Relic server:
   # If a proxy is used, the host setting is required. Other settings
@@ -240,8 +227,7 @@ common: &default_settings
     # by providing a comma separated list of full class names.
     # The default is to exclude akka.actor.ActorKilledException. If you want to override
     # this, you must provide any new value as an empty list is ignored.
-    ignore_classes:
-      - "akka.actor.ActorKilledException"
+    ignore_errors: akka.actor.ActorKilledException
 
     # Use this property to exclude specific http status codes from being reported as errors
     # by providing a comma separated list of status codes.
@@ -297,7 +283,7 @@ common: &default_settings
     attributes:
 
       # When true, attributes will be sent to New Relic. The default is true.
-      enabled: true
+      enabled: false
 
       # A comma separated list of attribute keys whose values should be sent to New Relic.
       #include:
@@ -305,8 +291,23 @@ common: &default_settings
       # A comma separated list of attribute keys whose values should not be sent to New Relic.
       #exclude:
 
+  # Cross Application Tracing adds request and response headers to
+  # external calls using supported HTTP libraries to provide better
+  # performance data when calling applications monitored by other New Relic agents.
+  #
+  # Distributed tracing is replacing cross application tracing as the default
+  # means of tracing between services. To continue using cross application
+  # tracing, enable it with `cross_application_tracer.enabled = true` and
+  # `distributed_tracing.enabled = false`
+  cross_application_tracer:
+
+    # Set to false to disable cross-application tracing.
+    # Default is true.
+    enabled: false
+
+
   # Thread profiler measures wall clock time, CPU time, and method call counts
-  # in your application's threads as they run.
+  # in your application's threads as they cross_application_tracer.enabledrun.
   # This feature is not available to Lite accounts and is automatically disabled.
   thread_profiler:
 
@@ -379,45 +380,6 @@ common: &default_settings
   # An example label
   #label_name: label_value
 
-  # New Relic Security vulnerability detection.
-  security:
-    # Determines whether the security data is sent to New Relic or not. When this is disabled and agent.enabled is
-    # true, the security module will run but data will not be sent. Default is false.
-    enabled: false
-
-    # Determines whether the low priority attack/vulnerability modules will instrument or not.
-    # When this is disabled instrumentation of such modules will be skipped and vice versa, default is false.
-    low-priority-instrumentation:
-      enabled: false
-
-    # New Relic Security provides two modes: IAST and RASP
-    # Default is IAST. Due to the invasive nature of IAST scanning, DO NOT enable this mode in either a
-    # production environment or an environment where production data is processed.
-    mode: IAST
-
-    # New Relic Security’s SaaS connection URL
-    validator_service_url: wss://csec.nr-data.net
-
-    # To completely disable all security functionality, set this flag to false. This property is
-    # read only once at application start. Default is false.
-    agent:
-      enabled: false
-
-    # These are the category of security events that can be detected. Set to false to disable detection of
-    # individual event types. Default is true for each event type.
-    detection:
-      rci:
-        enabled: true
-      rxss:
-        enabled: true
-      deserialization:
-        enabled: true
-
-  # Slow transaction detection will report an event to New Relic ("SlowTransaction") whenever a Transaction's time exceeds the threshold value
-  # (in ms). A transaction will only be reported once.
-  slow_transactions:
-    enabled: false
-    threshold: 1000
 
 # Application Environments
 # ------------------------------------------
@@ -431,15 +393,15 @@ common: &default_settings
 # NOTE if your application has other named environments, you should
 # provide configuration settings for these environments here.
 
-development:
+hom:
   <<: *default_settings
-  app_name: My Application (Development)
+  app_name: 'http-response-hom'
 
 test:
   <<: *default_settings
   app_name: My Application (Test)
 
-production:
+prod:
   <<: *default_settings
 
 staging:
