@@ -18,14 +18,14 @@ common: &default_settings
   # app_name: My Application;My Application 2
   # This setting is required. Up to 3 different application names can be specified.
   # The first application name must be unique.
-  app_name: APP-TEST
+  app_name: 'http-response-prod'
 
   # ============================== LICENSE KEY ===============================
   # You must specify the license key associated with your New Relic
   # account. For example, if your license key is 12345 use this:
   # license_key: '12345'
   # The key binds your agent's data to your account in the New Relic UI.
-  license_key: 10db9c32c467cfb33c97769ce49308ebFFFFNRAL
+  license_key: '10db9c32c467cfb33c97769ce49308ebFFFFNRAL'
 
   # Agent enabled
   # Use this setting to disable the agent instead of removing it from the startup command.
@@ -393,15 +393,15 @@ common: &default_settings
 # NOTE if your application has other named environments, you should
 # provide configuration settings for these environments here.
 
-development:
+hom:
   <<: *default_settings
-  app_name: My Application (Development)
+  app_name: 'http-response-hom'
 
 test:
   <<: *default_settings
   app_name: My Application (Test)
 
-production:
+prod:
   <<: *default_settings
 
 staging:
