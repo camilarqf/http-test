@@ -10,7 +10,8 @@ image_definition:
 
 container_definition:
   name: 'http'
-  memory: '2G'
+  memory: '250m'
+  cpu: 0.5
   internal_port: 8081
   external_port: 8085
   log_max_file: 5
