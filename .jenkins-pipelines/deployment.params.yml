@@ -15,7 +15,7 @@ container_definition:
   external_port: 8085
   log_max_file: 5
   log_max_size: '5m'
-  replicas: 1
+  replicas: 2
   volume: '/mnt/files/'
 
 integration_definition:
