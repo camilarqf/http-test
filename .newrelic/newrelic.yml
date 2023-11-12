@@ -301,7 +301,7 @@ common: &default_settings
 
 
   # Thread profiler measures wall clock time, CPU time, and method call counts
-  # in your application's threads as they run.
+  # in your application's threads as they cross_application_tracer.enabledrun.
   # This feature is not available to Lite accounts and is automatically disabled.
   thread_profiler:
 

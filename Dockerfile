@@ -11,17 +11,17 @@ COPY --from=MAVEN_DIR tmp/target/http.response-0.0.1-SNAPSHOT.jar http.response-
 
 #Configurando New Relic
 RUN mkdir -p /usr/local/tomcat/newrelic
-ADD src/main/resources/newrelic.jar /usr/local/tomcat/newrelic/newrelic.jar
+ADD .newrelic/newrelic.jar /usr/local/tomcat/newrelic/newrelic.jar
 ENV JAVA_OPTS="$JAVA_OPTS -javaagent:/usr/local/tomcat/newrelic/newrelic.jar"
-ADD src/main/resources/newrelic.yml /usr/local/tomcat/newrelic/newrelic.yml
+ADD .newrelic/newrelic.yml /usr/local/tomcat/newrelic/newrelic.yml
 CMD java -Dnewrelic.environment=$ENV -jar http.response-0.0.1-SNAPSHOT.jar
 ENV NEW_RELIC_LOG_FILE_NAME="STDOUT"
 
 # Adicionando Healthcheck
 RUN apk add --no-cache curl
-HEALTHCHECK --interval=40s --timeout=10s --retries=3  \
+HEALTHCHECK --interval=40s --timeout=10s --retries=3 --start-period=1m \
   CMD curl -f http://localhost:8081/healthcheck || exit 1
 
-#ENTRYPOINT ["java","-javaagent:/usr/local/tomcat/newrelic/newrelic.jar","-jar","http.response-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java","-javaagent:/usr/local/tomcat/newrelic/newrelic.jar","-jar","http.response-0.0.1-SNAPSHOT.jar"]
 #ENTRYPOINT ["java", "-jar","http.response-0.0.1-SNAPSHOT.jar"]
-ENTRYPOINT ["sh", "-c", "java -jar /http.response-0.0.1-SNAPSHOT.jar & sleep 60 && java -javaagent:/usr/local/tomcat/newrelic/newrelic.jar -jar /http.response-0.0.1-SNAPSHOT.jar"]
+#ENTRYPOINT ["sh", "-c", "java -jar /http.response-0.0.1-SNAPSHOT.jar & sleep 60 && java -javaagent:/usr/local/tomcat/newrelic/newrelic.jar -jar /http.response-0.0.1-SNAPSHOT.jar"]
