@@ -15,7 +15,7 @@ container_definition:
   external_port: 8085
   log_max_file: 5
   log_max_size: '5m'
-  replicas: 2
+  replicas: 1
   volume: '/mnt/files/'
 
 integration_definition:
@@ -33,4 +33,3 @@ regions:
     manager_hosts: ['192.168.1.10', '192.168.1.2', '192.168.1.3']
     credential_id: 'root'
     env_file: '.jenkins-pipelines/prod.env.yml'
-    replicas: '2'
