@@ -11,15 +11,19 @@ COPY --from=MAVEN_DIR tmp/target/http.response-0.0.1-SNAPSHOT.jar http.response-
 
 #Configurando New Relic
 RUN mkdir -p /usr/local/tomcat/newrelic
-ADD .newrelic/newrelic.jar /usr/local/tomcat/newrelic/newrelic.jar
+ADD src/main/resources/newrelic/newrelic.jar /usr/local/tomcat/newrelic/newrelic.jar
 ENV JAVA_OPTS="$JAVA_OPTS -javaagent:/usr/local/tomcat/newrelic/newrelic.jar"
-ADD .newrelic/newrelic.yml /usr/local/tomcat/newrelic/newrelic.yml
-CMD java -Dnewrelic.environment=$ENV -jar http.response-0.0.1-SNAPSHOT.jar
+ADD src/main/resources/newrelic/newrelic.yml /usr/local/tomcat/newrelic/newrelic.yml
+ENV NEW_RELIC_APP_NAME=NEW_RELIC_APP_NAME
+ENV JAVA_OPTS="$JAVA_OPTS -Dnewrelic.config.app_name=$NEW_RELIC_APP_NAME"
+ENV NEW_RELIC_LICENSE_KEY=NEW_RELIC_LICENSE_KEY
+ENV JAVA_OPTS="$JAVA_OPTS -Dnewrelic.config.license_key=$NEW_RELIC_LICENSE_KEY"
+CMD java -Dnewrelic.environment=$ENV -jar /novoGerenciador.jar
 ENV NEW_RELIC_LOG_FILE_NAME="STDOUT"
 
 # Adicionando Healthcheck
 RUN apk add --no-cache curl
-HEALTHCHECK --interval=20s --timeout=10s --retries=6 --start-period=1m \
+HEALTHCHECK --interval=30s --timeout=10s --retries=6 --start-period=1m \
   CMD curl -f http://localhost:8081/healthcheck || exit 1
 
 ENTRYPOINT ["java","-javaagent:/usr/local/tomcat/newrelic/newrelic.jar","-jar","http.response-0.0.1-SNAPSHOT.jar"]
