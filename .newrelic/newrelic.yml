@@ -69,7 +69,7 @@ common: &default_settings
 
   error_collector:
 
-    enabled: true
+    enabled: false
 
     ignore_errors: akka.actor.ActorKilledException
 
