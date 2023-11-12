@@ -31,7 +31,11 @@ common: &default_settings
   # Use this setting to disable the agent instead of removing it from the startup command.
   # Default is true.
   agent_enabled: true
+
   jar_collector:
+    enabled: false
+
+  jmx:
     enabled: false
 
   # To enable high security, set this property to true. When in high
@@ -58,7 +62,7 @@ common: &default_settings
   # The levels in increasing order of verboseness are:
   #   off, severe, warning, info, fine, finer, finest
   # Default is info.
-  log_level: finest
+  log_level: warning
 
   # Log all data sent to and from New Relic in plain text.
   # This setting is dynamic, so changes do not require restarting your application.
