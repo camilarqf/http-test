@@ -24,7 +24,7 @@ ENV NEW_RELIC_LOG_FILE_NAME="STDOUT"
 # Adicionando Healthcheck
 RUN apk add --no-cache curl
 HEALTHCHECK --interval=30s --timeout=10s --retries=6 --start-period=1m \
-  CMD curl -f http://localhost:8081/healthcheck || exit 1
+  CMD curl -f http://localhost:8080/healthcheck || exit 1
 
 #ENTRYPOINT ["java","-javaagent:/usr/local/tomcat/newrelic/newrelic.jar","-jar","http.response-0.0.1-SNAPSHOT.jar"]
 ENTRYPOINT ["java", "-jar","http.response-0.0.1-SNAPSHOT.jar"]
