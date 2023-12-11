@@ -1,15 +1,15 @@
 app:
-  name: 'HTTP'
+  name: 'Java-APP'
 
 main_branch: 'master'
 
 image_definition:
-  name: 'http-img'
+  name: 'java-app-img'
   registry_host: '192.168.1.6:5000'
   docker_file: 'Dockerfile'
 
 container_definition:
-  name: 'http'
+  name: 'java-app'
   memory: '250m'
   cpu: 0.5
   internal_port: 8080
