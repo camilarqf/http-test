@@ -18,7 +18,7 @@ container_definition:
   log_max_size: '5m'
   replicas: 2
   volume: '/mnt/files/'
-  network: 'traefik-public'
+  network: 'nginx-ingress-network'
 
 integration_definition:
   discord_web_hook_notification: 'https://discordapp.com/api/webhooks/1113501876290322502/nKY752bMbJnBZe34y1ZS8yUE9XfqRSD0XNShXD_ldSr4SY1Z9Xx4KHoMm6N3aMt20HiY'
