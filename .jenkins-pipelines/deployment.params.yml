@@ -1,7 +1,7 @@
 app:
   name: 'Java-APP'
 
-main_branch: 'master'
+main_branch: 'prometheus'
 
 image_definition:
   name: 'java-app-img'
