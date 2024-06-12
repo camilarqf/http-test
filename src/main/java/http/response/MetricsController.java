@@ -1,3 +1,4 @@
+/*
 package http.response;
 
 
@@ -23,3 +24,4 @@ public class MetricsController {
         return prometheusMeterRegistry.scrape();
     }
 }
+*/

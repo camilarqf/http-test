@@ -1,4 +1,3 @@
-/*
 package http.response;
 
 import io.prometheus.client.exporter.common.TextFormat;
@@ -25,4 +24,3 @@ public class PrometheusMetricsController {
         TextFormat.write004(response.getWriter(), io.prometheus.client.CollectorRegistry.defaultRegistry.metricFamilySamples());
     }
 }
-*/
