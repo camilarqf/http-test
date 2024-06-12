@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping("/prometheus")
 public class MetricsController {
 
     private final PrometheusMeterRegistry prometheusMeterRegistry;
@@ -17,8 +18,8 @@ public class MetricsController {
         this.prometheusMeterRegistry = prometheusMeterRegistry;
     }
 
-    @RequestMapping(value = "/prometheus", method = RequestMethod.GET)
-    public String metrics() {
+    @RequestMapping(method = RequestMethod.GET)
+    public String scrape() {
         return prometheusMeterRegistry.scrape();
     }
 }
